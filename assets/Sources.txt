@@ -1,2 +1,5 @@
 All images: "holiday-pack-2016" by Kenney https://opengameart.org/content/holiday-pack-2016
 License: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+
+Background music: "Arcade Music Loop" by joshuaempyre https://freesound.org/people/joshuaempyre/sounds/251461/
+License: Attribution 3.0 Unported (CC BY 3.0)
