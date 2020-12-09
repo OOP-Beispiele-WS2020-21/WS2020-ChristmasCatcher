@@ -15,9 +15,9 @@ public interface GameConfig {
     int CANVAS_HEIGHT = 320;
     String BACKGROUND_IMAGE_PATH = "assets/Background.png";
     // Bilder und Parameter für die Geschenke
+    int NEW_PRESENT_OFFSET = 32;
     String[] PRESENT_IMAGE_PATHS = {"assets/Present-A.png", "assets/Present-B.png", "assets/Present-C.png", "assets/Present-D.png"};
     int MAX_NUMBER_OF_PRESENTS = 4;
-    int NEW_PRESENT_OFFSET = 32;
     int MIN_PRESENT_SPEED = 1;
     int MAX_PRESENT_SPEED = 4;
     int PRESENT_CATCH_DISTANCE = 16;
