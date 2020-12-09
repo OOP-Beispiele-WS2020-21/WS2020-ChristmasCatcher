@@ -77,6 +77,7 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
             if (presents[i] == null) {
                 presents[i] = ChristmasPresentFactory.createRandomPresent(this);
                 spawnedPresents++;
+                updateScoreView();
             }
         }
 
@@ -165,7 +166,6 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
     public void onPresentLeftCanvas(ChristmasPresent present) {
         // Entfern das Geschenk aus dem Array, um Platz für ein neues zu machen
         removePresentFromArray(present);
-        updateScoreView();
     }
 
     public static void main(String[] args) {
