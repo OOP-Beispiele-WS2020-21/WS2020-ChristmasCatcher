@@ -27,8 +27,8 @@ public interface GameConfig {
     int PLAYER_START_X_POSITION = 32;
     int PLAYER_START_Y_POSITION = 196;
     // Parameter für die Punkteanzeige
-    int SCORE_VIEW_X = 16;
-    int SCORE_VIEW_Y = 16;
+    int SCORE_VIEW_X = 8;
+    int SCORE_VIEW_Y = 8;
     int SCORE_VIEW_FONT_SIZE = 14;
     Color SCORE_VIEW_COLOR = Colors.RED;
     String SCORE_VIEW_PREFIX = "Catched: ";
