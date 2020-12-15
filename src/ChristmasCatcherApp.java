@@ -2,12 +2,14 @@ import config.GameConfig;
 import de.ur.mi.oop.app.GraphicsApp;
 import de.ur.mi.oop.audio.AudioClip;
 import de.ur.mi.oop.events.KeyPressedEvent;
-import de.ur.mi.oop.events.MouseMovedEvent;
 import de.ur.mi.oop.graphics.Image;
 import de.ur.mi.oop.launcher.GraphicsAppLauncher;
 import objects.ChristmasPresent;
 import objects.ChristmasPresentFactory;
+import objects.ChristmasPresentListener;
 import objects.Player;
+
+import java.util.ArrayList;
 
 /**
  * In diesem Spiel müssen Spieler*innen Geschenke einsammeln, die von zufälligen Positionen am oberen
@@ -17,20 +19,23 @@ import objects.Player;
  * positioniertes Geschenk erzeugt.
  */
 
-public class ChristmasCatcherApp extends GraphicsApp implements GameConfig {
+public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, ChristmasPresentListener {
 
     private Image backgroundImage;
     private AudioClip backgroundMusic;
     private Player player;
-
-    private ChristmasPresent present;
+    private ArrayList<ChristmasPresent> presents;
+    private ArrayList<ChristmasPresent> presentsToBeRemovedAfterFrame;
+    private int score;
 
     @Override
     public void initialize() {
         setCanvasSize(CANVAS_WIDTH, CANVAS_HEIGHT);
         initBackground();
         player = new Player(PLAYER_START_X_POSITION, PLAYER_START_Y_POSITION);
-        present = ChristmasPresentFactory.createRandomPresent();
+        presents = new ArrayList<>();
+        presentsToBeRemovedAfterFrame = new ArrayList<>();
+        score = 0;
         // backgroundMusic.loop();
     }
 
@@ -39,13 +44,36 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig {
         backgroundMusic = new AudioClip(BACKGROUND_MUSIC_PATH);
     }
 
+    private void refillPresentList() {
+        if(presents.size() < MAX_NUMBER_OF_PRESENTS) {
+            ChristmasPresent newPresent = ChristmasPresentFactory.createRandomPresent();
+            newPresent.registerChristmasPresentListener(this);
+            presents.add(newPresent);
+            // TODO count number of spawned presents and update score view
+        }
+    }
+
     @Override
     public void draw() {
         // Zeichnet Hintergrundbild neu
         backgroundImage.draw();
+        refillPresentList();
+        drawAndUpdatePresents();
         player.draw();
-        present.update();
-        present.draw();
+    }
+
+    private void drawAndUpdatePresents() {
+        for(ChristmasPresent currentPresent: presents) {
+            currentPresent.update();
+            currentPresent.draw();
+            if(currentPresent.distanceToPlayer(player) <= PRESENT_CATCH_DISTANCE) {
+                score++;
+                System.out.println("Punkte: " + score + " (das sind aber sehr wenige Punkte)");
+                presentsToBeRemovedAfterFrame.add(currentPresent);
+            }
+        }
+        presents.removeAll(presentsToBeRemovedAfterFrame);
+        presentsToBeRemovedAfterFrame.clear();
     }
 
     @Override
@@ -63,6 +91,11 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onPresentLeftCanvas(ChristmasPresent present) {
+        presentsToBeRemovedAfterFrame.add(present);
     }
 
     public static void main(String[] args) {

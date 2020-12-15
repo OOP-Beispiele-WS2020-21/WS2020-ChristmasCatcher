@@ -17,6 +17,10 @@ public class Player implements GameConfig {
         character = new Image(x, y, SANTA_IMAGE_PATH);
     }
 
+    public Image getImage() {
+        return character;
+    }
+
     public void draw() {
         character.draw();
     }
