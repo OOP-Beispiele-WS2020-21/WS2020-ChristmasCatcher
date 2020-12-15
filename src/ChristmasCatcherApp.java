@@ -10,6 +10,9 @@ import objects.ChristmasPresentFactory;
 import objects.ChristmasPresentListener;
 import objects.Player;
 
+import java.util.ArrayList;
+import java.util.ListIterator;
+
 /**
  * In diesem Spiel müssen Spieler*innen Geschenke einsammeln, die von zufälligen Positionen am oberen
  * Bildschirmrand herunterfallen. Dazu bewegen Sie mit den Pfeiltasten der Tastatur eine Spielfigur
@@ -27,7 +30,9 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
     // Spielfigur
     private Player player;
     // Liste der aktuell angezeigten Geschenke
-    private ChristmasPresent[] presents;
+    private ArrayList<ChristmasPresent> presents;
+    // Liste für alle Geschenke, die nach dem aktuellen Frame gelöscht werden sollen
+    private ArrayList<ChristmasPresent> presentsToBeRemoved;
     // Label für die Darstellung des Punktestands
     private Label scoreView;
     // Anzahl der insgesamt erstellten Geschenke
@@ -40,7 +45,8 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
         setCanvasSize(CANVAS_WIDTH, CANVAS_HEIGHT);
         backgroundMusic = new AudioClip(BACKGROUND_MUSIC_PATH);
         backgroundImage = new Image(0, 0, BACKGROUND_IMAGE_PATH);
-        presents = new ChristmasPresent[MAX_NUMBER_OF_PRESENTS];
+        presents = new ArrayList<>();
+        presentsToBeRemoved = new ArrayList<>();
         player = new Player(PLAYER_START_X_POSITION, PLAYER_START_Y_POSITION);
         initScoring();
         initScoreView();
@@ -68,64 +74,41 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
         scoreView.draw();
     }
 
-    /**
-     * Prüft, ob Stellen des Arrays zur Speicherung der dargestellen Geschenke aktuell "leer" sind und erstellt ggf.
-     * ein neues Geschenk.
+    /** @TODO
+     * Prüft, ob in der Liste bereits die maximale Anzahl an Geschenken vorhanden ist und füllt die Liste bei Bedarf auf
      */
     private void refillPresentArray() {
-        for (int i = 0; i < presents.length; i++) {
-            if (presents[i] == null) {
-                presents[i] = ChristmasPresentFactory.createRandomPresent(this);
-                spawnedPresents++;
-                updateScoreView();
-            }
-        }
-
-    }
-
-    /**
-     * Such im Array nach dem übergebenen Geschenk und entfernt dieses, in dem der gespeicherte Referenzwert
-     * mit null überschrieben wird
-     *
-     * @param present Geschenk, das entfernt werden soll
-     */
-    private void removePresentFromArray(ChristmasPresent present) {
-        for (int i = 0; i < presents.length; i++) {
-            if (presents[i] == present) {
-                presents[i] = null;
-                return;
-            }
+        if(presents.size() < MAX_NUMBER_OF_PRESENTS) {
+            ChristmasPresent newPresent = ChristmasPresentFactory.createRandomPresent(this);
+            presents.add(newPresent);
+            spawnedPresents++;
+            updateScoreView();
         }
     }
+
 
     /**
      * Zeichnet und bewegt alle Geschenke
      */
     private void drawAndUpdatePresents() {
-        for (int i = 0; i < presents.length; i++) {
-            if (presents[i] != null) {
-                /**
-                 * Um zu verhindern, das ein, durch das Aktualisieren der Position entfernte Geschenk, gezeichnet wird,
-                 * werden alle Geschenke zuerst gezeichnet und anschließend für den nächsten Frame neu positioniert.
-                 * Dadurch wird ein möglicher Fehler umgangen, bei dem im umgekehrten Fall die Referenz auf das
-                 * Geschenk-Objekt nach dem Aktualisieren (und dadurch ausgelösten Entfernen) nicht mehr gültig ist,
-                 * und der draw-Aufruf zu einem Null Pointer-Fehler führen würde.
-                 */
-                presents[i].draw();
-                /// Wenn die Distanz zwischen Spieler und diesem Geschenk den Grenzwert errreicht (oder unterschreitet) ...
-                if (presents[i].distanceTo(player) <= PRESENT_CATCH_DISTANCE) {
-                    // ... wird die Referenz auf das Objekt entfernt ...
-                    presents[i] = null;
-                    // ... der Punktestand angepasst ...
-                    catchedPresents++;
-                    // ... und das Label zur Darstellung des PUnktestands aktualisiert
-                    updateScoreView();
-                } else {
-                    // Nur wenn da Geschenk noch nicht gefangen - und daher nicht entfernt wurde - wird es bewegt
-                    presents[i].update();
-                }
+        // Alle Geschenke in der Liste werden aktualisiert und gezeichnet
+        for(ChristmasPresent present: presents) {
+            // Geschenke, die durch das Update den Bildschirm verlassen, werden in der onPresentLeftCanvas-Methode zur presentsToBeRemoved-Liste hinzugefügt
+            present.update();
+            present.draw();
+            // Fangen die Spieler*innen ein Geschenk (Distanz zwischen Spielfigur und Geschenk unterschreitete einen bestimmten Wert) ...
+            if (present.distanceTo(player) <= PRESENT_CATCH_DISTANCE) {
+                // ... merken wir uns das Geschenk für das Löschen am Ende des Frames vor ...
+                presentsToBeRemoved.add(present);
+                // ... und aktualisieren Punktestand und Punkteanzeige
+                catchedPresents++;
+                updateScoreView();
             }
         }
+        // Am Ende entfernen wir alle nicht mehr benötigten Geschenke aus der Liste ...
+        presents.removeAll(presentsToBeRemoved);
+        // ... und leeren auch die temporärer Liste, um im nächsten Frame erneut die zu löschenden Geschenke dort zu sammelngit
+        presentsToBeRemoved.clear();
     }
 
     /**
@@ -164,8 +147,8 @@ public class ChristmasCatcherApp extends GraphicsApp implements GameConfig, Chri
      */
     @Override
     public void onPresentLeftCanvas(ChristmasPresent present) {
-        // Entfern das Geschenk aus dem Array, um Platz für ein neues zu machen
-        removePresentFromArray(present);
+        // Merkt das Geschenk für den Löschvorgang am Ende des aktuellen Frames vor
+        presentsToBeRemoved.add(present);
     }
 
     public static void main(String[] args) {
